@@ -33,7 +33,12 @@
             <%= password_input f, :password, autocomplete: "off", class: "rounded shadow-sm focus:ring-opacity-50 #{error_ring(f, :password)}"%>
              <%= error_tag f, :password, [class: "text-red-700 text-sm"] %>
       </div>
-
+<.form_field
+  type="text_input"
+  form={f}
+  field={:username}
+  placeholder="user name"
+/>
 <.dropdown label="Pick One" js_lib="live_view_js">
             <.dropdown_menu_item>
     <Heroicons.Outline.home class="w-5 h-5 text-gray-500" />
