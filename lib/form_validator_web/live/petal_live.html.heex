@@ -1,0 +1,63 @@
+<section class="mt-24 w-1/2 shadow flex flex-col items-center justify-center mx-auto p-6 bg-white">
+    <h1 class="text-4xl font-bold italic text-gray-700">
+        Create Account
+    </h1>
+
+    <p class="text-gray-500 font-semibold text-lg mt-6 text-center px-8">
+        Sign up to get an account
+    </p>
+
+    <.form
+        let={f}
+        for={@changeset}
+        phx-change="validate"
+        phx-submit="save"
+        id="user-form"
+        class="flex flex-col space-y-4 w-full px-6">
+
+        <div class="flex flex-col">
+            <%= label f, :email , class: "text-gray-500" %>
+            <%= email_input f, :email, autocomplete: "off",
+          class: "rounded shadow-sm focus:ring-opacity-50 #{error_ring(f, :email)}" %>
+             <%= error_tag f, :email , [class: "text-red-700 text-sm"] %>
+      </div>
+
+        <div class="flex flex-col">
+            <%= label f, :username, class: "text-gray-500" %>
+            <%= text_input f, :username, autocomplete: "off", class: "rounded shadow-sm focus:ring-opacity-50 #{error_ring(f, :username)}"%>
+             <%= error_tag f, :username, [class: "text-red-700 text-sm"]%>
+      </div>
+
+        <div class="flex flex-col">
+            <%= label f, :password, class: "text-gray-500" %>
+            <%= password_input f, :password, autocomplete: "off", class: "rounded shadow-sm focus:ring-opacity-50 #{error_ring(f, :password)}"%>
+             <%= error_tag f, :password, [class: "text-red-700 text-sm"] %>
+      </div>
+
+<.dropdown label="Pick One" js_lib="live_view_js">
+            <.dropdown_menu_item>
+    <Heroicons.Outline.home class="w-5 h-5 text-gray-500" />
+    Button item with icon
+  </.dropdown_menu_item>
+  <.dropdown_menu_item link_type="button" label="button item" />
+  <.dropdown_menu_item link_type="a" to="/" label="Link" />
+  <.dropdown_menu_item link_type="a" to="/" label="Link with method" method={:put} />
+  <.dropdown_menu_item link_type="live_patch" to="/" label="Live Patch" />
+  <.dropdown_menu_item link_type="live_redirect" to="/" label="Live Redirect" />
+  <.dropdown_menu_item phx-click="save" label="Phoenix click event" />
+</.dropdown>
+        <div>
+            <%= submit "Signup", phx_disable_with: "Saving...", class: "w-full py-2 border-none shadow rounded font-semibold text-sm text-gray-50 hover:bg-violet-600 bg-violet-500" %>
+      </div>
+
+      <.button label="Button" to="/" />
+      <.button color="gray" label="Gray" to="/" />
+      <.button color="gray" label="Gray" variant="outline" to="/" />
+      <.button color="gray" loading={:true} label="Gray" variant="outline" to="/" />
+
+    </.form>
+    <p class="text-sm px-10 text-center mt-6 text-gray-400 font-semibold">
+        By signing up, you agree to Terms, Data and Cookies Policy.
+    </p>
+
+ </section>

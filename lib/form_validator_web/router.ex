@@ -17,7 +17,7 @@ defmodule FormValidatorWeb.Router do
   scope "/", FormValidatorWeb do
     pipe_through :browser
 
-    live "/", PageLive
+    live "/", PetalLive
     #    get "/", PageController, :index
   end
 

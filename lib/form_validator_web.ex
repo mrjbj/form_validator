@@ -98,6 +98,9 @@ defmodule FormValidatorWeb do
       import FormValidatorWeb.ErrorHelpers
       import FormValidatorWeb.Gettext
       alias FormValidatorWeb.Router.Helpers, as: Routes
+
+      # petal components stuff
+      use PetalComponents
     end
   end
 
