@@ -48,8 +48,12 @@ defmodule FormValidator.MixProject do
       {:gettext, "~> 0.18"},
       {:jason, "~> 1.2"},
       {:plug_cowboy, "~> 2.5"},
+      {:tailwind, "~> 0.1.6", runtime: Mix.env() == :dev},
+      {:ash, "~> 1.52.0-rc.2"},
+      {:ash_phoenix, "~> 0.7.2-rc.2"},
+      {:ash_postgres, "~> 0.42.0-rc.4"},
       {:petal_components, "~> 0.16"},
-      {:tailwind, "~> 0.1.6", runtime: Mix.env() == :dev}
+      {:periscope, "~> 0.5.6"}
     ]
   end
 

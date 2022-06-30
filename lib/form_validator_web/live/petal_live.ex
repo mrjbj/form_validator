@@ -1,13 +1,15 @@
 defmodule FormValidatorWeb.PetalLive do
   use FormValidatorWeb, :live_view
 
-  alias FormValidator.Accounts
-  alias FormValidator.Accounts.User
+  alias Ash.Changeset
+  alias FormValidator.User
 
   def mount(_params, _session, socket) do
-    changeset = Accounts.change_user(%User{})
+    user_cs = Changeset.new(User)
 
-    {:ok, assign(socket, changeset: changeset)}
+    form = AshPhoenix.Form.for_create(User, :create, api: FormValidator.Api, as: "form_params")
+
+    {:ok, assign(socket, form_user: form)}
   end
 
   @doc """
@@ -17,31 +19,26 @@ defmodule FormValidatorWeb.PetalLive do
    then sets socket.action to :validate
    and returns the new changeset back as socket.assigns.changeset
   """
-  def handle_event("validate", %{"user" => user_params}, socket) do
-    changeset =
-      %User{}
-      |> Accounts.change_user(user_params)
-      |> Map.put(:action, :validate)
+  def handle_event("validate", %{"form_params" => params}, socket) do
+    form = AshPhoenix.Form.validate(socket.assigns.form_user, params)
 
-    {:noreply, assign(socket, changeset: changeset)}
+    {:noreply, assign(socket, form_user: form)}
   end
 
   def handle_event("save", %{"value" => value_params}, socket) do
-    IO.inspect(value_params, label: "value_params")
-
     {:noreply, socket |> put_flash(:info, "You clicked it, baby!")}
   end
 
-  def handle_event("save", %{"user" => user_params}, socket) do
-    case Accounts.create_user(user_params) do
-      {:ok, _user} ->
+  def handle_event("save", _params, socket) do
+    case AshPhoenix.Form.submit(socket.assigns.form_user) do
+      {:ok, result} ->
         {:noreply,
          socket
          |> put_flash(:info, "User created.")
          |> push_redirect(to: "/")}
 
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, changeset: changeset)}
+      {:error, form} ->
+        {:noreply, assign(socket, :form_user, form)}
     end
   end
 end
