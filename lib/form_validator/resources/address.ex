@@ -11,7 +11,7 @@ defmodule FormValidator.Address do
 
     attribute :user_id, :uuid, allow_nil?: false
     attribute :number, :integer, allow_nil?: true
-    attribute :street, :integer, allow_nil?: true
+    attribute :street, :string, allow_nil?: true
     attribute :city, :string, allow_nil?: true
     attribute :state, :string, allow_nil?: true
     attribute :postal_code, :string, allow_nil?: true

@@ -53,7 +53,8 @@ defmodule FormValidator.MixProject do
       {:ash_phoenix, "~> 0.7.2-rc.2"},
       {:ash_postgres, "~> 0.42.0-rc.4"},
       {:petal_components, "~> 0.16"},
-      {:periscope, "~> 0.5.6"}
+      {:periscope, "~> 0.5.6"},
+      {:mix_test_watch, "~> 1.1", only: :dev, runtime: false}
     ]
   end
 

@@ -14,14 +14,29 @@ defmodule FormValidator.User do
     uuid_primary_key :id
 
     attribute :email, :string, allow_nil?: false, constraints: [max_length: 255]
-    attribute :username, :string, allow_nil?: false, constraints: [min_length: 5, max_length: 30]
-    attribute :password, :string, allow_nil?: false, constraints: [min_length: 6, max_length: 80]
+
+    attribute :username, :string,
+      allow_nil?: false,
+      default: "changeme",
+      constraints: [min_length: 5, max_length: 30]
+
+    attribute :password, :string,
+      allow_nil?: false,
+      default: "Goober4,123",
+      constraints: [min_length: 6, max_length: 80]
 
     create_timestamp :inserted_at
     update_timestamp :updated_at
   end
 
   relationships do
+    has_many :tweets, FormValidator.Tweet do
+      source_field :id
+      destination_field :user_id
+      description "Each user can have many tweets."
+      violation_message "Can't delete User when Tweets are found."
+    end
+
     has_many :addresses, FormValidator.Address do
       source_field :id
       destination_field :user_id
@@ -31,11 +46,33 @@ defmodule FormValidator.User do
   end
 
   actions do
-    create :create, primary?: true
+    # default
+    defaults [:create, :read, :update, :destroy]
+    # custom
     create :validate
-    read :read, primary?: true
-    update :update, primary?: true
-    destroy :destroy, primary?: true
+
+    read :get_by_email do
+      argument :email, :string
+      filter email: arg(:email)
+    end
+
+    #   get_by_email do
+    #     argument :pemail, :string
+    #     IO.puts("inside get_by_email")
+    #   end
+    # end
+
+    # code_interface do
+    #   define_for FormValidator.User
+
+    #   define :get_by_email do
+    #     args [:pemail]
+    #     get? true
+    #   end
+    # end
+
+    # def get_by_email(pemail) do
+    #   IO.puts("get_by_email called.")
   end
 
   validations do

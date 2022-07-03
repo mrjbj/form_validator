@@ -21,7 +21,7 @@ defmodule FormValidatorWeb.ErrorHelpers do
     with :validate <- form.source.action do
       case Keyword.fetch(form.errors, field) do
         {:ok, _} ->
-          "border-red-700 focus:border-red-700 focus:ring_red-700"
+          "border-blue-700 focus:border-red-700 focus:ring-orange-700"
 
         :error ->
           "border-green-500 focus:border-green-500 focus:ring-green-500"

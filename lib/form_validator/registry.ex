@@ -3,6 +3,7 @@ defmodule FormValidator.Registry do
 
   entries do
     entry FormValidator.User
+    entry FormValidator.Tweet
     entry FormValidator.Address
   end
 end

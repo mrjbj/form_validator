@@ -60,7 +60,7 @@ input[type=radio].has-error:not(.phx-no-feedback) {
 .invalid-feedback {
   color: #a94442;
   display: block;
-  margin: -1rem 0 2rem;
+  /* margin: -1rem 0 2rem; */
 }
 
 /* LiveView specific classes for your customization */
