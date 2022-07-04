@@ -2,7 +2,7 @@
 
 ## Intro - Background and Purpose
 
-Welcome to the livebook demo for form_validator, an sample project, intending to show
+Welcome to the livebook demo for form_validator, an sample project intending to show
 how to use Ash framework in a Phoenix LiveView project to create, retrieve, update, and
 delete a parent/child data relationship in a single data entry form.
 
@@ -11,28 +11,32 @@ Database model is `users` and `tweets`. There are many tweets per user but only 
 Access to `User` and `Tweet` structures is mediated through Ash framework, which
 encapsulates database data at a table level through an Ecto.Schema like module called a "resource".
  `Ash.Resources` define both the structure of a database table, (e.g., "attributes",
-"validations", or "virtual fields") as well as the `actions` or methods that should be used to retrieve and
-manipulate that data, and ultimately persist it to the database.
+"validations", or "virtual fields" called "aggregates" or "calculations") as well as the `actions` or methods that 
+can be used to retrieve, manipulate and persist that data through to the database.
 
-`Ash.Resources` are by convention placed in directory like `./lib/resource/<resource_name.exs>`.
-Typing something like `Ash.Resource.Info.attributes(User)` will show you the fields defined for the User,
-while `Ash.Resource.Info.actions(User)` will show the methods you can use to interact with it.
-
-Remainder of this livebook will flow along the following path -  first we connect livebook to the database
-and add in some sample data.  Then, we'll read, update, and delete that data dealing with each table,
-one at a time.  After that, we'll figure out how to manage the parent/child relationship between users and
+Remainder of this livebook flows along the following path -  first we connect livebook to the database
+and add in some sample data.  Then, we'll read, update, and delete that data dealing with each table as a
+standalone entity. After that, we'll figure out how to manage the parent/child relationship between users and
 tweets, then we'll try and expose that backend up through a single, parent/child data entry form, using
 Ash.PhoenixForm.
 
 ## Data Model - Users & Tweets
 
-`Ash.Resource.User` has the following attributes: `[:id, :email, :username, :password, :inserted_at, :updated_at]`. 
-`Ash.Resource.Tweet` is: `[:id, at, :updated_at]`
+`Ash.Resources` are by convention placed in the `./lib/resource/` directory, with one "schema" module defined for each table, (e.g., `./lib/resource/user.ex` for Users, or `./lib/resource/tweet.ex` for Tweets).
 
-To familiarize yourself with the database model, check out files `./lib/resources/user.ex` and `./lib/resources/tweet.ex`
-to understand the attributes available in each resource as well as the validations, actions and virtual fields available there.
-(virtual fields are derived at runtime for things like "calculations" and/or "aggregates". This will show how an Ash.Resource
-is configured for interaction to/from the database.
+If you pause for a moment and go take a look at thes files, you'll notice that they specify both the 
+structure of the database, as well as the validations and update actions used to maintain it. The syntax for specifying 
+resources is fully laid out in the documentation under `Ash.Resource.Dsl` but highlights include `attribute` for specifying physical database columns, 
+`calculations` and `aggregates` for specifying virtual columns, `validations` for ensuring good data, and `actions` to control how to persist data to the databse. 
+Resources also handle other things like access control, multi-tennancy, etc.  Check out `Ash.Resource.Dsl` in the documentation for full details.
+
+**Introspection:** If you want to interactively explore your resources, `Ash.Resource.Info` has some introspection functions, so you can type stuff 
+into IEx like `Ash.Resource.Info.attributes(User)` to show you the fields defined for the User,
+or `Ash.Resource.Info.actions(User)` will show the methods you can use to interact with it.
+
+For our livebook sample applications there are two resources defined: 
+`Ash.Resource.User` has `[:id, :email, :username, :password, :inserted_at, :updated_at]`. 
+`Ash.Resource.Tweet` is: `[:id, at, :updated_at]`
 
 ### Startup Database, take a look around.
 
@@ -79,7 +83,6 @@ list_of_users = [
 # iterate through list, adding one user at a time.
 users_added =
   Enum.reduce(list_of_users, 0, fn item, acc ->
-    # Construct User, transform to Changeset, persist to database.
     # Struct -> Changeset -> Resource
     User
     |> Ash.Changeset.new(%{email: item})
@@ -105,7 +108,7 @@ list_of_tweets = [
   "Tweet 5"
 ]
 
-# iterate through list, adding one user at a time.
+# iterate through list, adding one tweet at a time.
 tweets_added =
   Enum.reduce(list_of_tweets, 0, fn item, acc ->
     # Struct -> Changeset -> Resource
@@ -123,15 +126,17 @@ IO.inspect(tweets_added, label: "Tweets added: ")
 
 ### Reading Data
 
-The api layer handles interactions with the database, so just like `Api.create()` is used to *save* new records to the database, `Api.read()` is used to *retrieve* them instead.
-Before we can understand how to read, though, we must first understand `Ash.Query` instead.
+The api layer handles interactions with the database, so just like `Api.create()` is used to *save* new records to the database, `Api.read()` is used to *retrieve* data instead.
+Before we can understand how to read, though, we need to understand `Ash.Query` first.
 
 ### Querying Data
 
-Ash.Query contains a bunch of functions that facilitate retrieval of data. A full list can be seen in the documentation or interactively in IEx by typing `Ash.Query.` and then hitting TAB.
-The main ones to start with include `filter`, `sort` and `load`. Filter includes or ignores certain rows from the result set, while sort sorts, load preloads related tables, and `offset` and `limit` are useful for pagination.
+Ash.Query contains a bunch of functions that facilitate data retrieval. The full list is available in the documentation 
+or you can interactively explore it in IEx by typing `Ash.Query.` and then hitting TAB to expand all of the functions.  (For fun, try typing in `h Ash.Query.filter` into IEx to see docs on filter, for example).
+There many query functions, but the main ones to get started include `filter`, `sort` and `load`. 
+Filter includes or excludes certain rows from the result set, while sort sorts, load preloads related tables, and `offset` and `limit` are useful for pagination.
 
-Query.filter takes a resource and a filter expression, which can be specified in either *keyword* or *expression* style syntax.  Here is example below:
+**Filtering:** Query.filter takes a resource and a filter expression, which can be specified in either *keyword* or *expression* style syntax.  Here is example below:
 
 ```elixir
 # No query, just read(<ResourceName>) to return "select all" 
@@ -187,70 +192,82 @@ TO COME
 ```
 
 ## Relationships
+
 Relationships are "managed" through functions that operate on `Ash.Changeset`, taking a relationship-name (e.g., :tweets), and a params-map (called "input" in the docs) that provides
-the data to be applied as changes to the changeset. 
-##### manage_relationship - configuration options 
+the data to be applied as changes to the changeset.
+
+##### manage_relationship - configuration options
+
 `manage_relationship` operates on a nested changset as a full set. The "input" can be either a straight map (for many-to-one relationships) or a list of maps (in the case of one-to-many). 
 It is applied to the changset via `:on_lookup`, `:on_match`, and `:on_no_match` options that specify control logic to apply depending upon whether the item is already found in the changeset or not. 
 Matches are performed based upon primary key, so it should be included in the input. On the first pass, input items are matched against changeset items, with `:on_match` behavior triggered when found.
 If not found, then `:on_lookup` behavior is triggered, which retrieves data from the database and then invokes `:on_match`, if found. If still not found (or if no `:on_lookup` behavior is specified)
 then the `:on_no_match` behavior is invoked. After the input items have been checked against the changeset, the changeset is then checked against the input, with `:on_missing` logic triggered 
-for any changeset item not found in the corresponding input map.  This can be visualized via the diagram below: 
+for any changeset item not found in the corresponding input map.  This can be visualized via the diagram below:
+![](images/manage_relationship_diagram.jpg)
 
-##### manage_relationship - operation types 
+##### manage_relationship - operation types
+
 Rather than have to specify each of these options individually, we can instead group them together into an "operation type" to make common configurations easier. Operation types are specified via 
-the `:type` option and map to the specifications below: 
+the `:type` option and map to the specifications below:
 
-`:replace`         --> `[on_lookup: :relate, on_no_match: :error, on_match: :ignore, on_missing: :unrelate]`
-`:append`         --> `[on_lookup: :relate, on_no_match: :error, on_match: :ignore, on_missing: :ignore]`
-`:remove`         --> `[on_no_match: :error, on_match: :unrelate, on_missing: :ignore]`
-`:direct_control` --> `[on_lookup: :ignore, on_no_match: :create, on_match: :update, on_missing: :destroy]`
-`:create`          --> `[on_no_match: :create, on_match: :ignore]`
+```
+:replace --> [on_lookup: :relate, on_no_match: :error, on_match: :ignore, on_missing: :unrelate]
+:append --> [on_lookup: :relate, on_no_match: :error, on_match: :ignore, on_missing: :ignore]
+:remove  --> [on_no_match: :error, on_match: :unrelate, on_missing: :ignore]
+:direct_control --> [on_lookup: :ignore, on_no_match: :create, on_match: :update, on_missing: :destroy]
+:create --> [on_no_match: :create, on_match: :ignore]
+```
 
-`append_to_relationship/4` is an alias for manage_relationship with operation type of :append. 
-`replace_relationship/4` is an alias for manage_relationship with operation type of :replace. 
-`remove_from_relationship/4` is an alias for manage_relationship with operation type of :remove 
+```
+append_to_relationship/4 is an alias for manage_relationship with operation type of :append. 
+replace_relationship/4 is an alias for manage_relationship with operation type of :replace. 
+remove_from_relationship/4 is an alias for manage_relationship with operation type of :remove
+```
+
 ```elixir
 # Example 1: Create new Tweet, assign it to james@marfugi.com
 #   retrieve "james@marfugi.com" as parent into changeset. 
 #   create new tweet, using james as user. 
 #   create the relationship. 
-james_cs = 
-   User 
-   |> Ash.Query.filter(email: "james@marfugi.com") 
-   |> Api.read_one!() 
-   |> Ash.Changeset.new()
+james_cs =
+  User
+  |> Ash.Query.filter(email: "james@marfugi.com")
+  |> Api.read_one!()
+  |> Ash.Changeset.new()
 
 input = %{user_id: james_cs.data.id, body: "Tweet from james"}
 
-Ash.Changeset.manage_relationship(james_cs, :tweets, input, [type: :create]) 
+Ash.Changeset.manage_relationship(james_cs, :tweets, input, type: :create)
 |> Api.update()
 ```
+
 Example 2 is not working.  Getting errors like "changes would create a new related record" or "changes would leave record behind. "
+
 ```elixir
 # Example 2: Remove Tweet from James 
 #   retrieve "james@marfugi.com" as parent into changeset, with tweets preloaded.
 #   remove the relationship. 
-james_cs = 
-   User 
-   |> Ash.Query.filter(email: "james@marfugi.com") 
-   |> Ash.Query.load(:tweets)
-   |> Api.read_one!() 
-   |> Ash.Changeset.new()
+james_cs =
+  User
+  |> Ash.Query.filter(email: "james@marfugi.com")
+  |> Ash.Query.load(:tweets)
+  |> Api.read_one!()
+  |> Ash.Changeset.new()
 
 input = %{user_id: james_cs.data.id, body: "Tweet from james"}
 
-Ash.Changeset.manage_relationship(james_cs, :tweets, input, [type: :remove]) 
+Ash.Changeset.manage_relationship(james_cs, :tweets, input, type: :remove)
 |> Api.update()
 ```
 
+Example 3 is TODO
 
-Example 3 is TODO 
 ```elixir
 # Example 3: Change tweet from james to "joe@volcano.com" 
 ```
 
-## Changesets 
+## Changesets
 
 `Changesets.new` is used when you want a "light touch" on validations as when working with internal data that you know is already sound.   Use "Changeset.<for_action>" (e.g. `Changeset.for_create/2`, `Changeset.for_destroy/3`, `Changeset.for_update/4`) when working with data entered by user or flowing-in from external system, since the validations applied there will align with the type of "for_action" being applied.
 
