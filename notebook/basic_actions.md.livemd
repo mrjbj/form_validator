@@ -1,7 +1,5 @@
 # Overview
-
 ## Intro - Background and Purpose
-
 Welcome to the livebook demo for form_validator, an sample project intending to show
 how to use Ash framework in a Phoenix LiveView project to create, retrieve, update, and
 delete a parent/child data relationship in a single data entry form.
@@ -19,9 +17,7 @@ and add in some sample data.  Then, we'll read, update, and delete that data dea
 standalone entity. After that, we'll figure out how to manage the parent/child relationship between users and
 tweets, then we'll try and expose that backend up through a single, parent/child data entry form, using
 Ash.PhoenixForm.
-
 ## Data Model - Users & Tweets
-
 `Ash.Resources` are by convention placed in the `./lib/resource/` directory, with one "schema" module defined for each table, (e.g., `./lib/resource/user.ex` for Users, or `./lib/resource/tweet.ex` for Tweets).
 
 If you pause for a moment and go take a look at thes files, you'll notice that they specify both the 
@@ -37,11 +33,8 @@ or `Ash.Resource.Info.actions(User)` will show the methods you can use to intera
 For our livebook sample applications there are two resources defined: 
 `Ash.Resource.User` has `[:id, :email, :username, :password, :inserted_at, :updated_at]`. 
 `Ash.Resource.Tweet` is: `[:id, at, :updated_at]`
-
 ### Startup Database, take a look around.
-
 Launch the Ecto.Repo via start_link(), setup some useful aliases, and take a look at the structure.
-
 ```elixir
 # setup require and aliases
 require Ash.Query
@@ -65,11 +58,8 @@ end)
 
 Enum.each(Ash.Resource.Info.actions(Tweet), fn x -> IO.inspect(x.name, label: "action: ") end)
 ```
-
 ### Add some new Users
-
 Make a list of new user emails and then add them, one at a time.
-
 ```elixir
 # create list of users
 list_of_users = [
@@ -93,11 +83,8 @@ users_added =
 
 IO.inspect(users_added, label: "Users added: ")
 ```
-
 ### Add some new Tweets
-
 Do the same for Tweets, worrying only about the :body attribute.  Add them to the database one at a time.
-
 ```elixir
 # list
 list_of_tweets = [
@@ -121,23 +108,18 @@ tweets_added =
 
 IO.inspect(tweets_added, label: "Tweets added: ")
 ```
-
 ## CRUD Operations
-
 ### Reading Data
-
 The api layer handles interactions with the database, so just like `Api.create()` is used to *save* new records to the database, `Api.read()` is used to *retrieve* data instead.
 Before we can understand how to read, though, we need to understand `Ash.Query` first.
-
 ### Querying Data
-
-Ash.Query contains a bunch of functions that facilitate data retrieval. The full list is available in the documentation 
-or you can interactively explore it in IEx by typing `Ash.Query.` and then hitting TAB to expand all of the functions.  (For fun, try typing in `h Ash.Query.filter` into IEx to see docs on filter, for example).
+Ash.Query contains a bunch of functions that facilitate data retrieval. The full list is available in the documentation at `Ash.Query` 
+or you can interactively explore it in IEx by typing "Ash.Query." (with the "dot") and then hitting TAB to expand to show all of its functions.
+(For fun, try typing in `h Ash.Query.filter` into IEx to see the command line docs on filter).
 There many query functions, but the main ones to get started include `filter`, `sort` and `load`. 
-Filter includes or excludes certain rows from the result set, while sort sorts, load preloads related tables, and `offset` and `limit` are useful for pagination.
+Filter includes or excludes certain rows from the result set, while load pre-loads related tables, sort sorts, and `offset` and `limit` are useful for pagination.
 
 **Filtering:** Query.filter takes a resource and a filter expression, which can be specified in either *keyword* or *expression* style syntax.  Here is example below:
-
 ```elixir
 # No query, just read(<ResourceName>) to return "select all" 
 Api.read(User)
@@ -152,28 +134,24 @@ User
 |> Ash.Query.filter(email == "james@marfugi.com")
 |> Api.read()
 ```
-
 ### Loading Related Data
-
 `Query.load` is used to preload related tables. Note that it doesn't have to have a Query.filter on it first, but can.
 
 ```elixir
-# Query.load using keyword style syntax. Won't show any related tweets yet because they haven't been linked to users yet.
+# Query.load using keyword style syntax. This result will show `[]` for associated tweets because their haven't been any linked into a user yet.
 User
-|> Ash.Query.load([:tweets])
+|> Ash.Query.load(:tweets)
 |> Api.read()
 
 # Query.filter using expression style syntax.
 User
 |> Ash.Query.filter(email == "james@marfugi.com")
-|> Ash.Query.load([:tweets])
+|> Ash.Query.load(:tweets)
 |> Api.read()
 ```
-
 ### Sorting & Select
-
 `Query.sort` is used for sorting and `Query.select` is used to include or remove columns from the result set. IEx will still show all of the
-attributes to the screen (because it's not changing the %Struct{}), but those not "selected" in the `Ash.Query.select()` list, will be be set to `nil`.
+attributes via IO.inspect() to the screen (because the User %Struct{} defines them), but those attributes not "selected" in the `Ash.Query.select()` result, will be be set to `nil`.
 
 ```elixir
 # Query.load using keyword style syntax. Won't show any related tweets yet because they haven't been linked to users yet.
@@ -182,35 +160,52 @@ User
 |> Ash.Query.select([:email, :username])
 |> Api.read()
 ```
-
 ### Pagination
-
 TO COME
-
 ```elixir
 # todo 
 ```
-
 ## Relationships
+### Defining Relationships
+Relationships are defined in Ash.Resource (e.g., in `user.ex` or `tweet.ex`) and "managed" through functions expecting an `Ash.Changeset`. 
+When defining the child side of a parent/child relation, you don't need to specify the foriegn keys explicitly, since Ash will create and use one for you automatically, using the convention of <relationship_name>_id, (e.g., `tweet.user_id`).  
+```
+# .. from tweet.ex (foreign key "user_id" is implicitly defined by convention)
 
-Relationships are "managed" through functions that operate on `Ash.Changeset`, taking a relationship-name (e.g., :tweets), and a params-map (called "input" in the docs) that provides
-the data to be applied as changes to the changeset.
+defmodule FormValidator.Tweet do
+  # ... snip ...
+  # note -> :user_id is implicity defined
+  relationships do
+    belongs_to :user, FormValidator.User
+  end
+end
+```
+Of course, it's still possible to define them explicitly if you prefer, though this is not generally recommended, since there's a lot less noise in the code once you get comfortable with the idea that the foreign keys are still actually there, just working for you behind the scenes.  Here's how to define foreign key explicitly: 
+```
+# From tweet.ex 
+# - foreign key is defined explicitly via "attribute" 
+# - automatic foreign key generation is "turned off" in relationships via "define_field? false" 
 
-##### manage_relationship - configuration options
+defmodule FormValidator.Tweet do
+  # ... snip ...
+  
+  attribute :user_id, :uuid
+  
+  relationships do
+    belongs_to :user, FormValidator.User
+    define_field? false
+  end
+end
+```
+### Managing Relationships - Configuration. 
+Relationships are manipulated primarily through the `manage_relationship` function that takes in an Ash.Changeset along with a set of potential changes that are passed in as either a single map, a list of maps or an `Ash.Identity` value. (Collectively, this is called "input").  Changes are applied from both sides, first by comparing the "input" to the "changeset" and then comparing the "changeset" to the proposed "input" changes.  
+Processing on the "input-to-changeset" side begins first and is configured through `:on_lookup`, `:on_match`, and `:on_no_match` options that specify the control logic to use depending upon whether the input item was found in the changeset or not. 
+Matches are found based upon the primary key, so it or some other `Ash.Identity` should be present in the input. If an input item is found in the changeset, then the `:on_match` behavior is invoked, but if not found, then `:on_lookup` behavior is triggered to go and retrieve it from the database instead.  At that point, either `:on_match` or `:on_no_match` is invoked depending upon whether the item was found or not in the databsae. (`:on_no_match` is also invoked if `:on_lookup` was not specified or set to `:ignore`). 
 
-`manage_relationship` operates on a nested changset as a full set. The "input" can be either a straight map (for many-to-one relationships) or a list of maps (in the case of one-to-many). 
-It is applied to the changset via `:on_lookup`, `:on_match`, and `:on_no_match` options that specify control logic to apply depending upon whether the item is already found in the changeset or not. 
-Matches are performed based upon primary key, so it should be included in the input. On the first pass, input items are matched against changeset items, with `:on_match` behavior triggered when found.
-If not found, then `:on_lookup` behavior is triggered, which retrieves data from the database and then invokes `:on_match`, if found. If still not found (or if no `:on_lookup` behavior is specified)
-then the `:on_no_match` behavior is invoked. After the input items have been checked against the changeset, the changeset is then checked against the input, with `:on_missing` logic triggered 
-for any changeset item not found in the corresponding input map.  This can be visualized via the diagram below:
+Next, after "input-to-changeset" processing has completed, the "changeset-to-input" process begins, examining each changeset item for a corresponding match on the input side. In this case, `:on_missing` logic triggered for any changeset item not found in the corresponding input map.  The end result of these two processes can be visualized declaratively in the diagram below:
 ![](images/manage_relationship_diagram.jpg)
-
-##### manage_relationship - operation types
-
-Rather than have to specify each of these options individually, we can instead group them together into an "operation type" to make common configurations easier. Operation types are specified via 
-the `:type` option and map to the specifications below:
-
+### Managing Relationships - Operation Types
+Rather than have to remember and specify each of these control options individually, we can instead group them together into an "operation type" that makes common manipulation settings easier. Operation types are specified via the `:type` option and correspond to the specifications below:
 ```
 :replace --> [on_lookup: :relate, on_no_match: :error, on_match: :ignore, on_missing: :unrelate]
 :append --> [on_lookup: :relate, on_no_match: :error, on_match: :ignore, on_missing: :ignore]
@@ -218,27 +213,41 @@ the `:type` option and map to the specifications below:
 :direct_control --> [on_lookup: :ignore, on_no_match: :create, on_match: :update, on_missing: :destroy]
 :create --> [on_no_match: :create, on_match: :ignore]
 ```
-
+### Managing Relationships - Aliases 
+Finally, as an alternative to specifying operation types or setting relationship configuration options granularly, three function aliases are also available that encapsulate common settings for adding, replacing or removing relations in code.  The grandular approach is commonly used when defining "actions" inside of your "resources" while the operation types and aliased functions are more commonly used in code.  
 ```
 append_to_relationship/4 is an alias for manage_relationship with operation type of :append. 
 replace_relationship/4 is an alias for manage_relationship with operation type of :replace. 
 remove_from_relationship/4 is an alias for manage_relationship with operation type of :remove
 ```
 
+### Relationships Examples
+#### Example 1: Create a new Tweet, Add it to Existing User
 ```elixir
-# Example 1: Create new Tweet, assign it to james@marfugi.com
-#   retrieve "james@marfugi.com" as parent into changeset. 
-#   create new tweet, using james as user. 
-#   create the relationship. 
-james_cs =
+#retrieve "james@marfugi.com" as parent into changeset. 
+james_changeset =
   User
   |> Ash.Query.filter(email: "james@marfugi.com")
   |> Api.read_one!()
   |> Ash.Changeset.new()
 
-input = %{user_id: james_cs.data.id, body: "Tweet from james"}
+# specify input data for new tweet. 
+# note tweet.user_id is not specified explicitly 
+input_data = %{body: "This is a new tweet from James"}
 
-Ash.Changeset.manage_relationship(james_cs, :tweets, input, type: :create)
+# apply the input data as new :tweet relationship for the changeset
+james_with_tweet_changeset = Ash.Changeset.manage_relationship(james_changeset, :tweets, input_data, type: :create)
+
+# persist to the database. 
+# tweet.user_id will be set in SQL INSERT for us. 
+ Api.update(james_with_tweet_changeset)
+ 
+# we can pipe this all together as such. 
+User 
+|> Ash.Query.filter(email: "james@marfugi.com")
+|> Api.read_one!()
+|> Ash.Changeset.new()
+|> Ash.Changeset.manage_relationship(:tweets, %{body: "another new tweet from james"}, type: :create)
 |> Api.update()
 ```
 
