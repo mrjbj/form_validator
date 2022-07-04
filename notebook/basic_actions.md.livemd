@@ -61,6 +61,12 @@ Enum.each(Ash.Resource.Info.actions(Tweet), fn x -> IO.inspect(x.name, label: "a
 ### Add some new Users
 Make a list of new user emails and then add them, one at a time.
 ```elixir
+# --  NOTE: Throughout this livebook, you may notice bindings being assigned to expressions pipelined 
+# -- across multiple lines of text. If you try to cut and paste multi-line expressions from a pipeline into IEx, 
+# --  the binding often won't work because IEx evaluates expressions one line at a time. 
+# -- the solution is to either place the |> token at end of each line or join all of the lines
+# -- together into one, big line and then paste that into IEx.
+
 # create list of users
 list_of_users = [
   "alice@wonderland.com",
@@ -220,7 +226,6 @@ append_to_relationship/4 is an alias for manage_relationship with operation type
 replace_relationship/4 is an alias for manage_relationship with operation type of :replace. 
 remove_from_relationship/4 is an alias for manage_relationship with operation type of :remove
 ```
-
 ### Relationships Examples
 #### Example 1: Create a new Tweet, Add it to Existing User
 ```elixir
@@ -244,36 +249,46 @@ james_with_tweet_changeset = Ash.Changeset.manage_relationship(james_changeset, 
  
 # we can pipe this all together as such. 
 User 
-|> Ash.Query.filter(email: "james@marfugi.com")
-|> Api.read_one!()
-|> Ash.Changeset.new()
-|> Ash.Changeset.manage_relationship(:tweets, %{body: "another new tweet from james"}, type: :create)
-|> Api.update()
-```
-
-Example 2 is not working.  Getting errors like "changes would create a new related record" or "changes would leave record behind. "
-
-```elixir
-# Example 2: Remove Tweet from James 
-#   retrieve "james@marfugi.com" as parent into changeset, with tweets preloaded.
-#   remove the relationship. 
-james_cs =
-  User
   |> Ash.Query.filter(email: "james@marfugi.com")
-  |> Ash.Query.load(:tweets)
   |> Api.read_one!()
   |> Ash.Changeset.new()
+  |> Ash.Changeset.manage_relationship(:tweets, %{body: "another new tweet from james"}, type: :create)
+  |> Api.update()
+```
+#### Example 2: Remove Tweet from User
+If we want to remove a tweet from a user, we need a way of identifying which one we want to delete, so here we do want an ideneity of some kind, even if it's just the position of a preloaded child enum within the parent changeset.  This might be the case if a "delete" button were clicked on a HTML form, we could pass the value of the item clicked as a way to determine.  In this example, we'll peel off the first tweet from the top and pick-up its primary key (e.g. `tweet.id`), so we can feed it as input to `manage_relationship`.
+```elixir
+# retrieve james preloaded with all of his tweets 
+james_changeset = 
+ User 
+   |> Ash.Query.filter(email: "james@marfugi.com") 
+   |> Ash.Query.load(:tweets) 
+   |> Api.read_one!() 
+   |> Ash.Changeset.new()
 
-input = %{user_id: james_cs.data.id, body: "Tweet from james"}
+# pick-out the tweet.id from james's first associated tweet.
+input = %{id: Enum.at(james_changeset.data.tweets, 0).id }
 
-Ash.Changeset.manage_relationship(james_cs, :tweets, input, type: :remove)
-|> Api.update()
+Ash.Changeset.manage_relationship(james_changeset, :tweets, input, type: :remove)
+  |> Api.destroy()
 ```
 
-Example 3 is TODO
-
+#### Example 2: Update Existing Tweet from User
+Updating an existing tweet from parent side is essentially the same as removing from example 2 above, except in this case, we specify operation type of :update instead of :remove, and a call to Api.update() rather than Api.destroy()
 ```elixir
-# Example 3: Change tweet from james to "joe@volcano.com" 
+# retrieve james preloaded with all of his tweets 
+james_changeset = 
+ User 
+   |> Ash.Query.filter(email: "james@marfugi.com") 
+   |> Ash.Query.load(:tweets) 
+   |> Api.read_one!() 
+   |> Ash.Changeset.new()
+
+# pick-out tweet.id from james's first tweet.
+input = %{id: Enum.at(james_changeset.data.tweets, 0).id, body: "Updated tweet now!" }
+
+Ash.Changeset.manage_relationship(james_changeset, :tweets, input, type: :update)
+  |> Api.update()
 ```
 
 ## Changesets
