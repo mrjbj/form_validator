@@ -52,7 +52,7 @@ defmodule FormValidator.User do
     create :validate
 
     update :add_tweets do
-      argument :tweets, {:array, :map}
+      argument :tweets, {:array, :map}, allow_nil?: false
       change manage_relationship(:tweets, type: :create)
     end
 
@@ -62,7 +62,7 @@ defmodule FormValidator.User do
     # :on_missing [:destroy, :error, :ignore, :unrelate]
     update :remove_tweets do
       argument :tweets, {:array, :string}
-      change manage_relationship(:tweets, on_match: :destroy, on_missing: :error)
+      change manage_relationship(:tweets, on_match: :destroy)
     end
 
     read :get_by_email do

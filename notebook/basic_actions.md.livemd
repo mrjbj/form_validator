@@ -416,23 +416,20 @@ The User.add_tweets action takes in a tweet and adds it to the user.  There are 
 
 ```
   # from User.ex
-  #... 
-  actions do 
+  #...snip...
+  actions do
     defaults [:create, :read, :update, :destroy]
 
     update :add_tweets do
       argument :tweets, {:array, :map}
       change manage_relationship(:tweets, type: :create)
-      # if arg_name was different, then 
-      # change manage_relationship(:arg_tweets, :tweets, type: :create)
     end
 
     update :remove_tweets do
       argument :tweets, {:array, :string}
-      change manage_relationship(:tweets, on_match: :destroy, on_missing: :error)
+      change manage_relationship(:tweets, on_match: :destroy)
     end
-  end 
-  
+  end
 ```
 
 Based upon that, we can add one or more tweets by the following:
@@ -447,13 +444,22 @@ User
 |> Api.update()
 ```
 
-Using actions, we can remove them in much the same way.
+Using actions, we can remove them in much the same way.  We pull first user from the database as a sample, preload the tweets and pick a random one from within the list to target for deletion.  We get it's id and then call the `:remote_tweets` action to destroy it from the database.
 
 ```elixir
-User
-|> Ash.Query.limit(1)
-|> Api.read_one!()
-|> Ash.Changeset.for_update(:remove_tweets, %{tweets: ["I just changed you."]})
+first_user  = 
+  User 
+  |> Ash.Query.limit(1)
+  |> Ash.Query.load(:tweets)
+  |> Api.read_one!()
+
+first_user_random_tweet = 
+  first_user.tweets
+  |> Enum.take_random(1)
+  |> hd()
+  |> Map.get(:id)
+
+first_user |> Ash.Changeset.for_update(:remove_tweets, %{tweets: [first_user_random_tweet]})
 |> Api.update()
 ```
 
