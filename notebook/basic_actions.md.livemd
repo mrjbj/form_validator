@@ -69,7 +69,12 @@ Enum.each(Ash.Resource.Info.actions(Tweet), fn x -> IO.inspect(x.name, label: "a
 Repo.query("truncate users cascade")
 ```
 
+## CRUD Operations
+
+In this section, we'll go through the create/read/update/destroy actions common to business applications. First we add some users and tweets, then we'll read to get them back from the database, then we'll spend a few moments showing how to relate these two tables together, including adding a new tweet to existing user, removing a tweet, linking orphaned tweets to a user and changing the owner of a tweet.
+
 ### Add some new Users
+
 Make a list of new user emails and then add them, one at a time. To do this, we take an empty User struct, feed that into `Ash.Changeset.for_create` with an "action" of `:create`, and then persist to database via `Api.create()`
 
 ```elixir
@@ -103,7 +108,9 @@ IO.inspect(users_added, label: "Users added: ")
 ```
 
 ### Add some new Tweets
-Do the same for Tweets, considering only :body as a required attribute.  
+
+Do the same for Tweets, considering only :body as a required attribute.
+
 ```elixir
 # list
 list_of_tweets = [
@@ -127,8 +134,6 @@ tweets_added =
 
 IO.inspect(tweets_added, label: "Tweets added: ")
 ```
-
-## CRUD Operations
 
 ### Reading Data
 
@@ -161,7 +166,9 @@ User
 ```
 
 ### Loading Related Data
+
 `Query.load` is used to preload related tables. Note that it doesn't have to have a Query.filter on it first, but can.
+
 ```elixir
 # Query.load using keyword style syntax. This result will show `[]` for associated tweets because there haven't been any tweets linked to a user yet.
 User
@@ -176,6 +183,7 @@ User
 ```
 
 ### Sorting & Select
+
 `Query.sort` is used for sorting and `Query.select` is used to include or remove columns from the result set. IEx will still show all of the
 attributes via IO.inspect() to the screen (because the User %Struct{} defines them), but those attributes not "selected" in the `Ash.Query.select()` result, will be be set to `nil`.
 
@@ -187,19 +195,15 @@ User
 |> Api.read()
 ```
 
-### Pagination
-
-TO COME
-
-```elixir
-# todo 
-```
-
 ## Relationships
-Relationships are typically the most complicated part of database application, so there's a lot to cover here. This is in many ways the entire point of this livebook so we'll go through various examples slowly, to try and cover the most common use cases.  First, we'll discuss how relationships are defined, how children are added and removed from parents, and how parents are changed from children. 
+
+Relationships are typically the most complicated part of database application, so there's a lot to cover here. This is in many ways the entire point of this livebook so we'll go through various examples slowly, to try and cover the most common use cases.  First, we'll discuss how relationships are defined, how children are added and removed from parents, and how parents are changed from children.
+
 ### Defining Relationships
+
 Relationships are defined in Ash.Resource (e.g., in `user.ex` or `tweet.ex`) and "managed" through functions expecting an `Ash.Changeset`. 
 When defining the child side of a parent/child relation, you don't need to specify the foriegn keys explicitly, since Ash will create and use one for you automatically, using the convention of <relationship_name>_id, (e.g., `tweet.user_id`).
+
 ```
 # .. from tweet.ex (foreign key "user_id" is implicitly defined by convention)
 
@@ -211,7 +215,9 @@ defmodule FormValidator.Tweet do
   end
 end
 ```
+
 Of course, it's still possible to define your foriegn keys explicitly if you prefer, though this is not generally recommended, since there's a lot less noise in the code once you get comfortable with the idea that the foreign keys are still actually there, just working for you behind the scenes.  Here's how to define foreign key explicitly:
+
 ```
 # From tweet.ex 
 # - foreign key is defined explicitly via "attribute" 
@@ -230,6 +236,7 @@ end
 ```
 
 ### Managing Relationships - Configuration.
+
 Relationships are manipulated primarily through the `manage_relationship` function that takes in an Ash.Changeset along with a set of potential changes that are passed in as either a single map, a list of maps or an `Ash.Identity` value. (Collectively, this is called "input").  Changes are applied from both sides, first by comparing the "input" to the "changeset" and then comparing the "changeset" to the proposed "input" changes.  
 Processing on the "input-to-changeset" side begins first and is configured through `:on_lookup`, `:on_match`, and `:on_no_match` options that specify the control logic to use depending upon whether the input item was found in the changeset or not. 
 Matches are found based upon the primary key, so it or some other `Ash.Identity` should be present in the input. If an input item is found in the changeset, then the `:on_match` behavior is invoked, but if not found, then `:on_lookup` behavior is triggered to go and retrieve it from the database instead.  At that point, either `:on_match` or `:on_no_match` is invoked depending upon whether the item was found or not found in the databsae. (`:on_no_match` is also invoked if `:on_lookup` was not specified or set to `:ignore`).
@@ -238,6 +245,7 @@ Next, after "input-to-changeset" processing has completed, the "changeset-to-inp
 ![](images/manage_relationship_diagram.jpg)
 
 ### Managing Relationships - Operation Types
+
 Rather than have to remember and specify each of these control options individually, we can instead group them together into an "operation type" that makes common manipulation settings easier. Operation types are specified via the `:type` option and correspond to the specifications below:
 
 ```
@@ -294,7 +302,9 @@ User
 |> Ash.Query.filter(email: "james@marfugi.com")
 |> Api.read_one!()
 |> Ash.Changeset.for_update(:update)
-|> Ash.Changeset.manage_relationship(:tweets, %{body: "another new tweet from james"}, type: :create)
+|> Ash.Changeset.manage_relationship(:tweets, %{body: "another new tweet from james"},
+  type: :create
+)
 |> Api.update()
 ```
 
@@ -323,17 +333,20 @@ Enum.each(tweet_list, fn tweet ->
   |> Api.update!()
 end)
 ```
+
 We would also handle this in a cleaner way via `manage_relationship` and not have to worry about force_changing the user_id attribute explicitly at all:
+
 ```elixir
-Enum.each(tweet_list, fn tweet -> 
-  tweet 
-  |> Ash.Changeset.for_update(:update) 
-  |> Ash.Changeset.manage_relationship(:user, james_id, type: :replace) 
+Enum.each(tweet_list, fn tweet ->
+  tweet
+  |> Ash.Changeset.for_update(:update)
+  |> Ash.Changeset.manage_relationship(:user, james_id, type: :replace)
   |> Api.update()
-  end) 
+end)
 ```
 
-#### Example 3: Remove Tweet from User 
+#### Example 3: Remove Tweet from User
+
 To remove a tweet from a user, we need a way of identifying which one we want to delete, so we'll need an identity value of some kind, which we'll obtain via Enum from the tweets participating as children in the parent user changeset.  This might apply when a "delete" button is clicked on a HTML form, for example. The form sends in a value that is used to drive the match in comparision to the changeset's enum of tweets.  In this example, we'll peel off the first tweet from the top of the enum and use it's primary key (`tweet.id`) as the identifier to be used as input to drive behavior of the `manage_relationship` call, which will match against that value and call `on_match:` with the `:destroy` instruction for the database.
 
 Note that we're using `:destroy` here, rather than `:remove` for deleting. Remove only disassociates the link or relationship (effectively setting the foreign_key to nil), which would not actually remove it from the databse.  Destroy does that for us.
@@ -356,9 +369,10 @@ Ash.Changeset.manage_relationship(james_changeset, :tweets, input, on_match: :de
 |> Api.update()
 ```
 
-#### Example 4: Update Existing Tweet from User 
+#### Example 4: Update Existing Tweet from User
 
 Updating an existing tweet from parent side is essentially the same as example 3 above, except in this case, we specify an operation type of :update instead of :remove.
+
 ```elixir
 # retrieve james preloaded with all of his tweets 
 james_changeset =
@@ -376,9 +390,85 @@ Ash.Changeset.manage_relationship(james_changeset, :tweets, input, on_match: :up
 |> Api.update()
 ```
 
+#### Example 5: Change Parent via :on_lookup
+
+This next example is pretty cool.  We don't actually have to get the user_id field from the databse first like we've been doing so far.  Instead, since :email is defined as an Ash.Identity in Ash.Resource, we can reply upon :on_lookup behavior to do that for us automatically. In this example, we'll change the parent user from the first Tweet in our database.
+
+```elixir
+Tweet
+|> Ash.Query.limit(1)
+|> Api.read_one!()
+|> Ash.Changeset.for_update(:update)
+|> Ash.Changeset.manage_relationship(:user, %{email: "alice@wonderland.com"},
+  on_lookup: :relate,
+  on_no_match: :error
+)
+|> Api.update()
+```
+
+## Actions
+
+Now that we know how to `manage_relationships` manually, let's figure out how to bake them into reusable actions that we can call more easily from our Api. We'll refactor the examples above to use actions defined within Ash.Resource, instead of managing it outside manually.  Actions have a name (like :add_tweets), they can accept parameters (defined as "arguments"), and while a single change or update behavior is usually all that's needed, actions also allow multiple preparation or change steps, to handle more complex data manipulations.  For `:read` type actions,  we use `Ash.Resource.Preparation` steps allow us to build up filter and relation-loading operations before reading from the database, while create/update/destroy actions rely upon `Ash.Resource.Change` steps for manipulate data before persisting back to the database via Api.update(), Api.create() or Api.destroy().
+
+### Action :add_tweets
+
+The User.add_tweets action takes in a tweet and adds it to the user.  There are actually three "update" style actions defined for user -  one for default, plus ones for add and remove tweets respectively. Also note that "change manage_relationship/3" call actually accepts three parameters, (the argument_name, relationship_name and processing keywords like :on_match, :on_lookup, etc). In this case, since the argument name (tweets) is the same as the relationship name (also tweets), we don't have to type it twice.
+
+```
+  # from User.ex
+  #... 
+  actions do 
+    defaults [:create, :read, :update, :destroy]
+
+    update :add_tweets do
+      argument :tweets, {:array, :map}
+      change manage_relationship(:tweets, type: :create)
+      # if arg_name was different, then 
+      # change manage_relationship(:arg_tweets, :tweets, type: :create)
+    end
+
+    update :remove_tweets do
+      argument :tweets, {:array, :string}
+      change manage_relationship(:tweets, on_match: :destroy, on_missing: :error)
+    end
+  end 
+  
+```
+
+Based upon that, we can add one or more tweets by the following:
+
+```elixir
+User
+|> Ash.Query.limit(1)
+|> Api.read_one!()
+|> Ash.Changeset.for_update(:add_tweets, %{
+  tweets: [%{body: "first new tweet"}, %{body: "Can add multiple new tweets"}]
+})
+|> Api.update()
+```
+
+Using actions, we can remove them in much the same way.
+
+```elixir
+User
+|> Ash.Query.limit(1)
+|> Api.read_one!()
+|> Ash.Changeset.for_update(:remove_tweets, %{tweets: ["I just changed you."]})
+|> Api.update()
+```
+
+### Pagination
+
+TO COME
+
+```elixir
+# todo 
+```
+
 ## Changesets
 
-`Changesets.new` is used rarely, when you want a "light touch" on validations as when working with internal data that you know is already sound.   It's almost always better to use "Changeset.<for_action>" instead (e.g. `Changeset.for_create/2`, `Changeset.for_destroy/3`, `Changeset.for_update/4`), since the validations applied there will align with the type of "for_action" being applied.
+`Changesets.new` is used rarely, when you want a "light touch" on validations as when working with internal data that you know is already sound.   It's almost always better to use "Changeset.<for_action>" instead (e.g. `Changeset.for_create/2`, `Changeset.for_destroy/3`, `Changeset.for_update/4`), since the validations applied there will align with the type of "for_action" being applied.  This is made more clear in the examples below.
+
 ```elixir
 # internal data, will be valid
 loose_validation = Ash.Changeset.new(User)

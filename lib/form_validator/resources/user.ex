@@ -51,28 +51,24 @@ defmodule FormValidator.User do
     # custom
     create :validate
 
+    update :add_tweets do
+      argument :tweets, {:array, :map}
+      change manage_relationship(:tweets, type: :create)
+    end
+
+    # :on_no_match [:error, :create, :ignore, :match]
+    # :on_match [:error, :destroy, :ignore, :no_match, :update, :unrelate]
+    # :on_lookup [:ignore, :relate]
+    # :on_missing [:destroy, :error, :ignore, :unrelate]
+    update :remove_tweets do
+      argument :tweets, {:array, :string}
+      change manage_relationship(:tweets, on_match: :destroy, on_missing: :error)
+    end
+
     read :get_by_email do
       argument :email, :string
       filter email: arg(:email)
     end
-
-    #   get_by_email do
-    #     argument :pemail, :string
-    #     IO.puts("inside get_by_email")
-    #   end
-    # end
-
-    # code_interface do
-    #   define_for FormValidator.User
-
-    #   define :get_by_email do
-    #     args [:pemail]
-    #     get? true
-    #   end
-    # end
-
-    # def get_by_email(pemail) do
-    #   IO.puts("get_by_email called.")
   end
 
   validations do

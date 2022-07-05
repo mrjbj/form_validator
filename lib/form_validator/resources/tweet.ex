@@ -6,6 +6,10 @@ defmodule FormValidator.Tweet do
     table "tweets"
   end
 
+  identities do
+    identity :body, [:body]
+  end
+
   actions do
     defaults [:create, :read, :update, :destroy]
   end
