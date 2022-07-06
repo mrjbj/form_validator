@@ -27,16 +27,16 @@ Ash.PhoenixForm.
 If you pause for a moment and go take a look at thes files, you'll notice that they specify both the 
 structure of the database, as well as the validations and update actions used to maintain it. The syntax for specifying 
 resources is fully laid out in the documentation under `Ash.Resource.Dsl` but highlights include `attribute` for specifying physical database columns, 
-`calculations` and `aggregates` for specifying virtual columns, `validations` for ensuring good data, and `actions` to control how to persist data to the databse. 
-Resources also handle other things like access control, multi-tennancy, etc.  Check out `Ash.Resource.Dsl` in the documentation for full details.
+`calculations` and `aggregates` for specifying virtual columns, `validations` for ensuring good data, and `actions` that control how to persist data to the databse. 
+Resources also handle other things like access control, multi-tennancy, etc.  The documentation for `Ash.Resource.Dsl` contains full details.
 
-**Introspection:** If you want to interactively explore your resources, `Ash.Resource.Info` has some introspection functions, so you can type stuff 
-into IEx like `Ash.Resource.Info.attributes(User)` to show you the fields defined for the User,
-or `Ash.Resource.Info.actions(User)` will show the methods you can use to interact with it.
+**Introspection:** If you want to interactively explore your resources, `Ash.Resource.Info` has some introspection functions you can use to poke around, so you can type stuff 
+in IEx like `Ash.Resource.Info.attributes(User)` to show list of fields defined for Resource.User,
+or `Ash.Resource.Info.actions(User)` to see the actions instead.
 
 For our livebook sample applications there are two resources defined: 
-`Ash.Resource.User` has `[:id, :email, :username, :password, :inserted_at, :updated_at]`. 
-`Ash.Resource.Tweet` is: `[:id, at, :updated_at]`
+`Ash.Resource.User` considers both `:id` and `:email` to be two separate unique identifiers, while 
+`Ash.Resource.Tweet` is defined with just one unique (primary) key of `:id`.
 
 ### Startup Database, take a look around.
 
@@ -447,19 +447,20 @@ User
 Using actions, we can remove them in much the same way.  We pull first user from the database as a sample, preload the tweets and pick a random one from within the list to target for deletion.  We get it's id and then call the `:remote_tweets` action to destroy it from the database.
 
 ```elixir
-first_user  = 
-  User 
+first_user =
+  User
   |> Ash.Query.limit(1)
   |> Ash.Query.load(:tweets)
   |> Api.read_one!()
 
-first_user_random_tweet = 
+first_user_random_tweet =
   first_user.tweets
   |> Enum.take_random(1)
   |> hd()
   |> Map.get(:id)
 
-first_user |> Ash.Changeset.for_update(:remove_tweets, %{tweets: [first_user_random_tweet]})
+first_user
+|> Ash.Changeset.for_update(:remove_tweets, %{tweets: [first_user_random_tweet]})
 |> Api.update()
 ```
 
