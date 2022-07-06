@@ -31,7 +31,7 @@ resources is fully laid out in the documentation under `Ash.Resource.Dsl` but hi
 Resources also handle other things like access control, multi-tennancy, etc.  The documentation for `Ash.Resource.Dsl` contains full details.
 
 **Introspection:** If you want to interactively explore your resources, `Ash.Resource.Info` has some introspection functions you can use to poke around, so you can type stuff 
-in IEx like `Ash.Resource.Info.attributes(User)` to show list of fields defined for Resource.User,
+into an IEx command prompt like `Ash.Resource.Info.attributes(User)` to show list of fields defined for Resource.User,
 or `Ash.Resource.Info.actions(User)` to see the actions instead.
 
 For our livebook sample applications there are two resources defined: 
@@ -311,7 +311,7 @@ User
 #### Example 2: Update children's foreign key pointer to change its relationship to parent (from Child's point of view).
 
 This example takes all of the tweets we created so far and assigns them to user "james@marfugi.com", which shows us how to update a child's foreign key pointer to its parent. 
-First, we retrieve the :id of James from the database and save it as a variable. Next, we retrieve all of the tweets from the database and save them in a list.  From there, we iterate across each item in the list, transforming each tweet into an Ash.Changeseet, changing it's `user_id` foreign key to james.id and saving back to the database.  Note that we have to use `Ash.Changeset.force_change_attribute` rather than regular `change_attribute` because remember, the user_id foreign key is being managed for us by Ash and is therefore set to "not writable" by default.  `force_change_attribute` allows us to override this.
+First, we retrieve the :id of James from the database and save it as a variable. Next, we retrieve all of the tweets from the database and save them in a list.  From there, we iterate across each item in the list, transforming each tweet into an Ash.Changeseet, changing it's `user_id` foreign key to james.id and saving back to the database.  Note that we have to use `Ash.Changeset.force_change_attribute` rather than regular `change_attribute` because remember, the user_id foreign key is being managed for us by Ash and is therefore set to "not writable" by default.  `force_change_attribute` allows us to override this. We could also override by specifying `attribute_writable?` in the Resource definition, which will allow us to write to user_id manually if we want to as well.
 
 ```elixir
 # get james@marfugi's :id from the database. 
@@ -412,10 +412,14 @@ Now that we know how to `manage_relationships` manually, let's figure out how to
 
 ### Action :add_tweets
 
-The User.add_tweets action takes in a tweet and adds it to the user.  There are actually three "update" style actions defined for user -  one for default, plus ones for add and remove tweets respectively. Also note that "change manage_relationship/3" call actually accepts three parameters, (the argument_name, relationship_name and processing keywords like :on_match, :on_lookup, etc). In this case, since the argument name (tweets) is the same as the relationship name (also tweets), we don't have to type it twice.
+The User.add_tweets action takes in a tweet and adds it to the user.  There are actually three "update" style actions defined for user -  one for default, plus ones for add and remove tweets respectively. Also note that "change manage_relationship/3" call actually accepts three parameters, (the argument_name, relationship_name and processing keywords like :on_match, :on_lookup, etc). In this case, since the argument name (tweets) is the same as the relationship name (also tweets), we don't have to type it in again twice.
+
+**Arguments: (definition versus use):** You may notice the syntax used when defining arguments in the resource (e.g., `argument :tweets, {:array, :map}`), is a bit different than the syntax used to supply those values as parameters in the Api.  That's because the Api can handle not only the arguments you've pre-defined in a particular action, but all of the other attributes in the resource as well.  They all come through together in a single, consolidated keyword list.  So, the argument definition for `:tweets` as `{:array, :map}` simply means "there is an argument called ':tweets' that will supply a list of maps".   When those tweets are eventually supplied in a `for_update` call, they will be packaged inside a keyword list with the key-handle of "tweets:" (plus a list of tweet values) along with any other attributes that might be needed, like `:email` or `:username`.
+
+With that background in mind, here is the definition and use of the :add_tweets action, below.
 
 ```
-  # from User.ex
+  # DEFINITION of :add_tweets (from User.ex)
   #...snip...
   actions do
     defaults [:create, :read, :update, :destroy]
@@ -432,14 +436,16 @@ The User.add_tweets action takes in a tweet and adds it to the user.  There are 
   end
 ```
 
-Based upon that, we can add one or more tweets by the following:
+Based upon that definition, we can now invoke it to add one more or tweets via the following expression.
 
 ```elixir
 User
 |> Ash.Query.limit(1)
 |> Api.read_one!()
 |> Ash.Changeset.for_update(:add_tweets, %{
-  tweets: [%{body: "first new tweet"}, %{body: "Can add multiple new tweets"}]
+  tweets: [%{body: "first new tweet"}, %{body: "Can add multiple new tweets"}],
+  email: "james@marfugi.com",
+  username: "james"
 })
 |> Api.update()
 ```
