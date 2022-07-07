@@ -18,6 +18,7 @@ defmodule FormValidatorWeb.Router do
     pipe_through :browser
 
     live "/", PetalLive
+    live "/ash", AshUserLive
     #    get "/", PageController, :index
   end
 

@@ -51,6 +51,11 @@ defmodule FormValidator.User do
     # custom
     create :validate
 
+    update :manage_tweets do
+      argument :tweets, {:array, :map}
+      change manage_relationship(:tweets, type: :direct_control)
+    end
+
     update :add_tweets do
       argument :tweets, {:array, :map}, allow_nil?: false
       change manage_relationship(:tweets, type: :create)
@@ -65,7 +70,7 @@ defmodule FormValidator.User do
       change manage_relationship(:tweets, on_match: :destroy)
     end
 
-    read :get_by_email do
+    read :via_email do
       argument :email, :string
       filter email: arg(:email)
     end
