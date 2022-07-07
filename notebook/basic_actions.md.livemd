@@ -482,7 +482,7 @@ In our case, we're going to be using Phoenix Liveview as the front-end so we can
 
 ### AshPhoenix.Form
 
-If you're already familiar with Phoenix.HTML forms, the same concepts apply in AshPhoenix.Form very closely, except for a few configuration options needed in the initialization call up front. To initialize a form, the liveview must know what values to use for original data and it must know the Ash resource Api it's connected to in order to find the actions and validations to use to run the form.
+If you're already familiar with Phoenix.HTML forms, the same concepts generally apply in AshPhoenix.Form as well, except for a few configuration options needed in the initialization call up front. To initialize a form, the liveview must know what values to use for original data and it must know the Ash resource Api it's connected to in order to find the actions and validations to use to run the form.
 
 To do this, it's pretty much the same as in Phoenix Liveview. First we define a `mount/3` function that locates or creates the data structure used to initialize the form, which will be packaged and presented for use in the form as an Ash.Changeset.  Then, we connect the changeset to the form and specify the ash action that should be used to manipulate any edits. Finally, we define a template or render method for the front-end, and in that we bind back to the form that was created in mount/3 through LiveView's standard syntax for forms (e.g., `<.form let={f}  for={@form}`). It may sound and look a bit complicated (see image), but it's pretty much all "normal" Phoenix LiveView stuff.
 ![](images/AshPhoenixForm.jpeg)
