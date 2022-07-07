@@ -115,10 +115,10 @@ Do the same for Tweets, considering only :body as a required attribute.
 # list
 list_of_tweets = [
   "Phoenix LiveView + OTP means scalable real-time goodness.",
-  "Tweet 2",
-  "Tweet 3",
-  "Tweet 4",
-  "Tweet 5"
+  "Tweet-2",
+  "Tweet-3",
+  "Tweet-4",
+  "Tweet-5"
 ]
 
 # iterate through list, adding one tweet at a time.
@@ -363,6 +363,8 @@ james_changeset =
   |> Ash.Changeset.for_update(:update)
 
 # pick-out first associated tweet and use the tweet.id from that as the one to delete. 
+# to find a particular tweet.body, we could try `Enum.find(james_changeset.data.tweets, fn x -> x.body == "Tweet-4"end )`
+
 input = %{id: Enum.at(james_changeset.data.tweets, 0).id}
 
 Ash.Changeset.manage_relationship(james_changeset, :tweets, input, on_match: :destroy)
@@ -371,7 +373,7 @@ Ash.Changeset.manage_relationship(james_changeset, :tweets, input, on_match: :de
 
 #### Example 4: Update Existing Tweet from User
 
-Updating an existing tweet from parent side is essentially the same as example 3 above, except in this case, we specify an operation type of :update instead of :remove.
+Updating an existing tweet from parent side is essentially the same as example 3 above, except in this case, we specify an operation type of :update instead of :remove, and we use Enum.find/3 to target "Tweet-4" to change.
 
 ```elixir
 # retrieve james preloaded with all of his tweets 
@@ -382,9 +384,11 @@ james_changeset =
   |> Api.read_one!()
   |> Ash.Changeset.for_update(:update)
 
-# pick-out first associated tweet and use the tweet.id from that as the one to delete. 
+# find 'Tweet-4' and grab the tweet.id from that as the one to change. 
+tweet4 = Enum.find(james_changeset.data.tweets, fn x -> x.body == "Tweet-4" end)
+
 # change the body attribute to simulate an update to the tweet content from parent user.
-input = %{id: Enum.at(james_changeset.data.tweets, 0).id, body: "I just changed you."}
+input = %{id: tweet4.id, body: "I just changed you."}
 
 Ash.Changeset.manage_relationship(james_changeset, :tweets, input, on_match: :update)
 |> Api.update()
@@ -469,6 +473,21 @@ first_user
 |> Ash.Changeset.for_update(:remove_tweets, %{tweets: [first_user_random_tweet]})
 |> Api.update()
 ```
+
+## Forms
+
+Now we come to a lot of cool stuff.  While Ash certainly provides a lot of functionality for the back end (like declaratively implementing data structure, validation, access and persistance of related tables to the database), it really begins to shine once you surface all of that functionality up to the front-end for use by clients as a "service". In many cases, you would be done with just that, configuing the Ash.Resource to expose a JSON or GraphQL endpoint that can be consumed by various clients on the front end directly, using virtually any toolchain as desired (e.g. iOS, Android, web service, etc.) This, like most things in Ash, would be defined declaratively in the resource using either a `json_api do` or `graphql do` directive.
+
+In our case, we're going to be using Phoenix Liveview as the front-end so we can demonstrate how `AshPhoenix.LiveView` and `AshPhoenix.Form` make things easier for liveview developers.  `AshPhoenix.LiveView` contains functions that make querying and updating ash resources easier (e.g. for "reading" or "listing" on the front end), while `AshPhoenix.Form` is used in "edit" or "add" forms to manipulate and persist that information back to the databse.  Both modules are `Ash.Resource` aware and thus tied into the "actions" defined there, including child/parent relationships to other tables/resources as applicable.
+
+### AshPhoenix.Form
+
+If you're already familiar with Phoenix.HTML forms, the same concepts apply in AshPhoenix.Form very closely, except for a few configuration options needed in the initialization call up front. To initialize a form, the liveview must know what values to use for original data and it must know the Ash resource Api it's connected to in order to find the actions and validations to use to run the form.
+
+To do this, it's pretty much the same as in Phoenix Liveview. First we define a `mount/3` function that locates or creates the data structure used to initialize the form, which will be packaged and presented for use in the form as an Ash.Changeset.  Then, we connect the changeset to the form and specify the ash action that should be used to manipulate any edits. Finally, we define a template or render method for the front-end, and in that we bind back to the form that was created in mount/3 through LiveView's standard syntax for forms (e.g., `<.form let={f}  for={@form}`). It may sound and look a bit complicated (see image), but it's pretty much all "normal" Phoenix LiveView stuff.
+![](images/AshPhoenixForm.jpeg)
+
+**Line Items:** Note the use of `inputs_for` to generate the line items.  This helper is relationship aware and knows that there are "tweets" associated with this user.  `inputs_for` will iterate through each tweet and render an input or other markup for each one of them.  In this way, the entire changeset (both parent and children) are editable as a single unit and the entire result can be written back to the databse exactly as it appears on screen.
 
 ### Pagination
 
