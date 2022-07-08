@@ -147,7 +147,7 @@ defmodule FormValidatorWeb.AshUserLive do
                   </thead>
                   <tbody class="divide-y divide-gray-200 bg-white">
                     <%= for tweet_form <- inputs_for(f, :tweets) do %>
-                      <.tweet tweet={tweet_form} />
+                      <.tweet tweet_form={tweet_form} test="hello" />
                     <% end %>
                     <td class="relative whitespace-nowrap py-2 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                       <a href="#" class="text-indigo-600 hover:text-indigo-900">
