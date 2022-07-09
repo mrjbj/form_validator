@@ -59,18 +59,6 @@ defmodule FormValidatorWeb.AshUserLive do
   #          <%= text_input(tweet_form, :body, class: "w-full py-2") %>
   # end
 
-  #         <.form let={f} for={@form} phx-change="validate" phx-submit="save" id="form_assign_id">
-  #           <%= for tweet_form <- inputs_for(f, :tweets) do %>
-  #             <.tweet tweet={tweet_form} />
-  #           <% end %>
-  #
-  #           <%= submit("Save",
-  #             phx_disable_with: "Saving...",
-  #             class:
-  #               "w-full py-2 border-none shadow rounded font-semibold text-sm text-gray-50 hover:bg-violet-600 bg-violet-500"
-  #           ) %>
-  #         </.form>
-
   def render(assigns) do
     ~H"""
     <.form let={f} for={@form} phx-change="validate" phx-submit="save" id="form_assign_id">
@@ -102,43 +90,37 @@ defmodule FormValidatorWeb.AshUserLive do
                         scope="col"
                         class="whitespace-nowrap py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
                       >
-                        Transaction ID
+                        Form ID
                       </th>
                       <th
                         scope="col"
                         class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900"
                       >
-                        Company
+                        Form Name
                       </th>
                       <th
                         scope="col"
                         class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900"
                       >
-                        Share
+                        Public?
                       </th>
                       <th
                         scope="col"
                         class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900"
                       >
-                        Commision
+                        Tweet Body
                       </th>
                       <th
                         scope="col"
                         class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900"
                       >
-                        Price
+                        Inserted At
                       </th>
                       <th
                         scope="col"
                         class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900"
                       >
-                        Quantity
-                      </th>
-                      <th
-                        scope="col"
-                        class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900"
-                      >
-                        Net amount
+                        Updated At
                       </th>
                       <th scope="col" class="relative whitespace-nowrap py-3.5 pl-3 pr-4 sm:pr-6">
                         <span class="sr-only">Edit</span>
@@ -147,7 +129,7 @@ defmodule FormValidatorWeb.AshUserLive do
                   </thead>
                   <tbody class="divide-y divide-gray-200 bg-white">
                     <%= for tweet_form <- inputs_for(f, :tweets) do %>
-                      <.tweet tweet_form={tweet_form} test="hello" />
+                      <.tweet tweet_form={tweet_form} , id={tweet_form.id} , name={tweet_form.name} />
                     <% end %>
                     <td class="relative whitespace-nowrap py-2 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                       <a href="#" class="text-indigo-600 hover:text-indigo-900">
