@@ -1,6 +1,10 @@
 defmodule FormValidatorWeb.TweetListComponent do
   use Phoenix.Component
 
+  import PetalComponents.Table
+  import Phoenix.HTML.Form
+  import FormValidatorWeb.TweetComponent
+
   def tweetlist(assigns) do
     ~H"""
     <div class="mt-8 flex flex-col">
@@ -16,9 +20,9 @@ defmodule FormValidatorWeb.TweetListComponent do
                 <.th>Inserted</.th>
                 <.th>Update</.th>
               </.tr>
-              <%= for tweet_form <- inputs_for(f, :tweets) do %>
-                <.tweet tweet_form={tweet_form} , id={tweet_form.id} , name={tweet_form.name} />
-              <% end %>
+              <pre>
+              hello world
+              </pre>
             </.table>
           </div>
         </div>
@@ -27,3 +31,7 @@ defmodule FormValidatorWeb.TweetListComponent do
     """
   end
 end
+
+# <%= for tweet_form <- inputs_for(f, :tweets) do %>
+#   <.tweet tweet_form={tweet_form} , id={tweet_form.id} , name={tweet_form.name} />
+# <% end %>

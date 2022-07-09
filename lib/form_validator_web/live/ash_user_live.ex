@@ -3,7 +3,7 @@ defmodule FormValidatorWeb.AshUserLive do
 
   import Ash.Query
   import FormValidatorWeb.TweetComponent
-  import FormValidatorWeb.TweetHeader
+  import FormValidatorWeb.TweetListComponent
 
   alias Ash.Query
   alias AshPhoenix.Form
@@ -49,6 +49,7 @@ defmodule FormValidatorWeb.AshUserLive do
   end
 
   def handle_event("add_form", %{"path" => path}, socket) do
+    IO.inspect(path, label: "path in add_form event")
     form = AshPhoenix.Form.add_form(socket.assigns.form, path)
     {:noreply, assign(socket, :form, form)}
   end
@@ -80,6 +81,7 @@ defmodule FormValidatorWeb.AshUserLive do
             </button>
           </div>
         </div>
+        <.tweetlist rows={@form.forms} />
         <!-- Container + Table . -->
         <div class="mt-8 flex flex-col">
           <div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
