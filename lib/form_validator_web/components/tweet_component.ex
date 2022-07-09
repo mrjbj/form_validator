@@ -40,3 +40,9 @@ end
 #   in your components's rendering method will have the properties you passed into it
 #   attached to that assignes (e.g. assigns.tweet_form).  Therefore, to access its values
 #   you can just reference the property prefixed by the "assigns" operator (e.g. @tweet_form)
+#
+# <%= %> means to run elixir code dynamically within a HEEX template.
+# {} means to run elixir code dynamically within a tag (e.g. '<>' like live_component or html_element)
+#    <div id={"user_#{@id}"}>
+#    or <.table id={"hello"} >
+# @ means to reference an assigns variable from within a HEEX template.

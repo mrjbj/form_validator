@@ -63,6 +63,7 @@ defmodule FormValidatorWeb.AshUserLive do
     ~H"""
     <.form let={f} for={@form} phx-change="validate" phx-submit="save" id="form_assign_id">
       <div class="px-4 sm:px-6 lg:px-8">
+        <!-- Container for parent + "export button for children " -->
         <div class="sm:flex sm:items-center">
           <div class="sm:flex-auto">
             <h1 class="text-xl font-semibold text-gray-900">Transactions</h1>
@@ -79,66 +80,24 @@ defmodule FormValidatorWeb.AshUserLive do
             </button>
           </div>
         </div>
+        <!-- Container + Table . -->
         <div class="mt-8 flex flex-col">
           <div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
             <div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
               <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-t-lg">
-                <table class="min-w-full divide-y divide-gray-300">
-                  <thead class="bg-gray-50">
-                    <tr>
-                      <th
-                        scope="col"
-                        class="whitespace-nowrap py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
-                      >
-                        Form ID
-                      </th>
-                      <th
-                        scope="col"
-                        class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900"
-                      >
-                        Form Name
-                      </th>
-                      <th
-                        scope="col"
-                        class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900"
-                      >
-                        Public?
-                      </th>
-                      <th
-                        scope="col"
-                        class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900"
-                      >
-                        Tweet Body
-                      </th>
-                      <th
-                        scope="col"
-                        class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900"
-                      >
-                        Inserted At
-                      </th>
-                      <th
-                        scope="col"
-                        class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900"
-                      >
-                        Updated At
-                      </th>
-                      <th scope="col" class="relative whitespace-nowrap py-3.5 pl-3 pr-4 sm:pr-6">
-                        <span class="sr-only">Edit</span>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-gray-200 bg-white">
-                    <%= for tweet_form <- inputs_for(f, :tweets) do %>
-                      <.tweet tweet_form={tweet_form} , id={tweet_form.id} , name={tweet_form.name} />
-                    <% end %>
-                    <td class="relative whitespace-nowrap py-2 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                      <a href="#" class="text-indigo-600 hover:text-indigo-900">
-                        Edit<span class="sr-only">, AAPS0L</span>
-                      </a>
-                    </td>
-                    <!-- More transactions... -->
-                  </tbody>
-                </table>
+                <.table class="min-w-full divide-y divide-gray-300">
+                  <.tr class="bg-gray-50">
+                    <.th>Form ID</.th>
+                    <.th>Form Name</.th>
+                    <.th>Public?</.th>
+                    <.th>Tweet</.th>
+                    <.th>Inserted</.th>
+                    <.th>Update</.th>
+                  </.tr>
+                  <%= for tweet_form <- inputs_for(f, :tweets) do %>
+                    <.tweet tweet_form={tweet_form} , id={tweet_form.id} , name={tweet_form.name} />
+                  <% end %>
+                </.table>
               </div>
             </div>
           </div>
@@ -155,3 +114,5 @@ defmodule FormValidatorWeb.AshUserLive do
     """
   end
 end
+
+# <.tweet tweet_form={tweet_form} , id={tweet_form.id} , name={tweet_form.name} />
