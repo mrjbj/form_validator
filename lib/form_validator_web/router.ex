@@ -19,6 +19,7 @@ defmodule FormValidatorWeb.Router do
 
     live "/", PetalLive
     live "/ash", AshUserLive
+    live "/test", TestLive
     #    get "/", PageController, :index
   end
 

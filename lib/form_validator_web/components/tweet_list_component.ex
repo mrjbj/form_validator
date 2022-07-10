@@ -1,37 +1,47 @@
 defmodule FormValidatorWeb.TweetListComponent do
   use Phoenix.Component
 
-  import PetalComponents.Table
+  import PetalComponents
   import Phoenix.HTML.Form
   import FormValidatorWeb.TweetComponent
 
+  # editable list component
+  # receives list of entries, iterates through each one and
+  # renders the markup specified in the inner block provided
+  # by caller.
+
+  @table "min-w-full divide-y divide-gray-300"
+  @table_head "min-w-full divide-y divide-gray-300"
+  @table_head_row_left "whitespace-nowrap py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
+  @table_head_row_rest "whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900"
+
+  @table_body "divide-y divide-gray-200 bg-white"
+  @table_body_left "whitespace-nowrap py-2 pl-4 pr-3 text-sm text-gray-500 sm:pl-6"
+  @table_body_rest "whitespace-nowrap px-2 py-2 text-sm text-gray-900"
+
+  defp get_class(class) do
+    case class do
+      :table -> @table
+      :table_head -> @table_head
+      :table_head_row_left -> @table_head_row_left
+      :table_head_row_rest -> @table_body_rest
+      :table_body -> @table_body
+      :table_body_left -> @table_body_left
+      :table_body_rest -> @table_body_rest
+      _ -> ""
+    end
+  end
+
   def tweetlist(assigns) do
     ~H"""
-    <div class="mt-8 flex flex-col">
-      <div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
-        <div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
-          <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-t-lg">
-            <.table class="min-w-full divide-y divide-gray-300">
-              <.tr class="bg-gray-50">
-                <.th>Form ID</.th>
-                <.th>Form Name</.th>
-                <.th>Public?</.th>
-                <.th>Tweet</.th>
-                <.th>Inserted</.th>
-                <.th>Update</.th>
-              </.tr>
-              <pre>
-              hello world
-              </pre>
-            </.table>
-          </div>
-        </div>
-      </div>
-    </div>
+    <table>
+      <%= render_slot(@table_header) %>
+      <tbody>
+        <%= for entry <- @entries do %>
+          <.tweet tweet_form={entry} />
+        <% end %>
+      </tbody>
+    </table>
     """
   end
 end
-
-# <%= for tweet_form <- inputs_for(f, :tweets) do %>
-#   <.tweet tweet_form={tweet_form} , id={tweet_form.id} , name={tweet_form.name} />
-# <% end %>

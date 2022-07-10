@@ -2,29 +2,37 @@ defmodule FormValidatorWeb.TweetComponent do
   use Phoenix.Component
 
   import Phoenix.HTML.Form
-  # <p>This is a Tweet. The message is <%= @body %>.</p>
+  # renders a tweet.
+  # tweet_form is an AshPhoenix.Form
+  # fields are expected to be [:public, :body, :inserted_at, :updated_at]
+
+  @row_style "whitespace-nowrap px-2 py-2 text-sm font-medium text-gray-900 sm:pl-6"
+  @cell_style "whitespace-nowrap py-2 text-sm font-medium text-gray-900 sm:pl-6"
+
+  defp row_style do
+    @row_style
+  end
+
+  defp cell_style do
+    @cell_style
+  end
+
   def tweet(assigns) do
     ~H"""
-    <tr id={AshPhoenix.Form.value(@tweet_form.source, :id)}>
-      <td class="whitespace-nowrap px-2 py-3.5 text-sm text-gray-500">
-        <%= @id %>
-      </td>
-      <td class="whitespace-nowrap px-2 py-3.5 text-sm text-gray-500">
-        <%= @name %>
-      </td>
-      <td class="whitespace-nowrap py-3.5 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+    <tr id={AshPhoenix.Form.value(@tweet_form.source, :id)} , class={row_style()}>
+      <td class={cell_style()}>
         <%= text_input(@tweet_form, :public) %>
       </td>
-      <td class="whitespace-nowrap px-2 py-3.5 text-sm text-gray-500">
+      <td class={cell_style()}>
         <%= text_input(@tweet_form, :body) %>
       </td>
-      <td class="whitespace-nowrap px-2 py-3.5 text-sm text-gray-500">
+      <td class={cell_style()}>
         <%= input_value(@tweet_form, :inserted_at) %>
       </td>
-      <td class="whitespace-nowrap px-2 py-3.5 text-sm text-gray-500">
+      <td class={cell_style()}>
         <%= input_value(@tweet_form, :updated_at) %>
       </td>
-      <td class="relative whitespace-nowrap py-2 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+      <td class={cell_style()}>
         <a href="#" class="text-indigo-600 hover:text-indigo-900">
           Edit<span class="sr-only">, Lindsay Walton</span>
         </a>

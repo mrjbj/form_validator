@@ -1,4 +1,4 @@
-defmodule FormValidatorWeb.AshUserLive do
+defmodule FormValidatorWeb.TestLive do
   use FormValidatorWeb, :live_view
 
   import Ash.Query
@@ -63,47 +63,9 @@ defmodule FormValidatorWeb.AshUserLive do
 
   def render(assigns) do
     ~H"""
-    <.form let={f} for={@form} phx-change="validate" phx-submit="save" id="form_assign_id">
-      <!-- Container for entire form  -->
-      <div class="px-4 sm:px-6 lg:px-8">
-        <!-- TODO: parent form  -->
-        <div class="sm:flex sm:items-center">
-          <div class="sm:flex-auto">
-            <h1 class="text-xl font-semibold text-gray-900">Transactions</h1>
-            <p class="mt-2 text-sm text-gray-700">
-              A table of placeholder stock market data that does not make any sense.
-            </p>
-          </div>
-          <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-            <button
-              type="button"
-              class="inline-flex items-center justify-center rounded-md border border-transparent bg-primary-600 px-8 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-auto"
-            >
-              Export
-            </button>
-          </div>
-        </div>
-        <!-- child div for table -->
-        <.tweetlist let={entry} entries={inputs_for(f, :tweets)}>
-          <:table_header>
-            <.tr class="bg-gray-50">
-              <.th>Public?</.th>
-              <.th>Tweet</.th>
-              <.th>Inserted</.th>
-              <.th>Update</.th>
-              <.th>Action</.th>
-            </.tr>
-          </:table_header>
-        </.tweetlist>
-        <div class="mt-4 px-8 sm:mt-0 sm:ml-16 sm:flex-none flex justify-end">
-          <%= submit("Save",
-            phx_disable_with: "Saving...",
-            class:
-              "w-1/6 py-2 border-none shadow rounded font-semibold text-sm text-gray-50 hover:bg-primary-600 bg-primary-500"
-          ) %>
-        </div>
-      </div>
-    </.form>
+    <SlotTestComponent.slottest >
+     Why does this generate "expected attribute error?" 
+    <SlotTestComponent./slottest>
     """
   end
 end
