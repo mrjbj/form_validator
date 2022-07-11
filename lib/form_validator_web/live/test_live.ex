@@ -63,9 +63,7 @@ defmodule FormValidatorWeb.TestLive do
 
   def render(assigns) do
     ~H"""
-    <SlotTestComponent.slottest >
-     Why does this generate "expected attribute error?" 
-    <SlotTestComponent./slottest>
+    Why does this generate "expected attribute error?"
     """
   end
 end

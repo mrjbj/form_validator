@@ -39,6 +39,16 @@ defmodule FormValidatorWeb do
 
       # Include shared imports and aliases for views
       unquote(view_helpers())
+      import Surface
+    end
+  end
+
+  def surface_view do
+    quote do
+      use Surface.LiveView,
+        layout: {FormValidatorWeb.LayoutView, "live.html"}
+
+      unquote(view_helpers())
     end
   end
 

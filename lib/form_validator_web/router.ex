@@ -1,6 +1,8 @@
 defmodule FormValidatorWeb.Router do
   use FormValidatorWeb, :router
 
+  import Surface.Catalogue.Router
+
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -20,6 +22,8 @@ defmodule FormValidatorWeb.Router do
     live "/", PetalLive
     live "/ash", AshUserLive
     live "/test", TestLive
+    live "/demo", Demo
+    live "/example", ExampleLive
     #    get "/", PageController, :index
   end
 
@@ -37,6 +41,13 @@ defmodule FormValidatorWeb.Router do
       pipe_through :browser
 
       forward "/mailbox", Plug.Swoosh.MailboxPreview
+    end
+  end
+
+  if Mix.env() == :dev do
+    scope "/" do
+      pipe_through :browser
+      surface_catalogue("/catalogue")
     end
   end
 end
