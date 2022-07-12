@@ -12,7 +12,7 @@ defmodule FormValidatorWeb.Components.Dialog.Example01 do
   def render(assigns) do
     ~F"""
     <div>
-      <Dialog title="User form" id="form_dialog_2">
+      <Dialog title="User form" id="form_dialog_1">
         <Form for={:user}>
           <Field name="name"><Label/><TextInput/></Field>
           <Field name="email"><Label/><TextInput/></Field>

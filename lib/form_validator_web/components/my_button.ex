@@ -20,13 +20,11 @@ defmodule FormValidatorWeb.Components.MyButton do
 
   def render(assigns) do
     ~F"""
-    <button
-      type="button"
-      class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-      :on-click={@click}
-    >
+    <button type="button" class="btn btn-primary" :on-click={@click}>
       <#slot>{@label}</#slot>
     </button>
     """
   end
 end
+
+# class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"

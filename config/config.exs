@@ -50,7 +50,8 @@ config :esbuild,
     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
   ],
   catalogue: [
-    args: ~w(../deps/surface_catalogue/assets/js/app.js --bundle --target=es2016 --minify --outdir=../priv/static/assets/catalogue),
+    args:
+      ~w(../deps/surface_catalogue/assets/js/app.js --bundle --target=es2016 --minify --outdir=../priv/static/assets/catalogue),
     cd: Path.expand("../assets", __DIR__),
     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
   ]
@@ -64,7 +65,10 @@ config :logger, :console,
 config :phoenix, :json_library, Jason
 
 config :surface, :components, [
-  {Surface.Components.Form.ErrorTag, default_translator: {FormValidatorWeb.ErrorHelpers, :translate_error}}
+  {Surface.Components.Form.ErrorTag,
+   default_translator: {FormValidatorWeb.ErrorHelpers, :translate_error}},
+  {Surface.Components.Form.Label,
+   default_class: "focus:ring-primary-500 h-4 w-4 text-primary-600 border-gray-300 rounded"}
 ]
 
 # Import environment specific config. This must remain at the bottom
