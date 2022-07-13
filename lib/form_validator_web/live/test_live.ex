@@ -8,10 +8,11 @@ defmodule FormValidatorWeb.TestLive do
   import FormValidatorWeb.SlotTestComponent
 
   alias Ash.Query
-  alias AshPhoenix.Form
+  alias AshPhoenix.Form, as: AshForm
   alias FormValidator.{User, Address, Api}
 
-  alias Surface.Components.Form.{Label, Field, TextInput}
+  import Surface.Components.Form
+  alias Surface.Components.Form
 
   # def mount(%{"post_id" => post_id}, _session, socket) do
   def mount(_params, _session, socket) do
@@ -23,24 +24,24 @@ defmodule FormValidatorWeb.TestLive do
 
     form =
       user
-      |> AshPhoenix.Form.for_update(
+      |> AshForm.for_update(
         :manage_tweets,
         api: Api,
         forms: [auto?: true]
       )
 
-    {:ok, assign(socket, :user, form)}
+    {:ok, assign(socket, :form, form)}
   end
 
   # In order to use the `add_form` and `remove_form` helpers, you
   # need to make sure that you are validating the form on change
   def handle_event("validate", %{"form" => params}, socket) do
-    form = AshPhoenix.Form.validate(socket.assigns.user, params, errors: false)
-    {:noreply, assign(socket, :user, form)}
+    form = AshForm.validate(socket.assigns.form, params, errors: false)
+    {:noreply, assign(socket, :form, form)}
   end
 
   def handle_event("save", _params, socket) do
-    case AshPhoenix.Form.submit(socket.assigns.user) do
+    case AshForm.submit(socket.assigns.form) do
       {:ok, new_user} ->
         {:noreply,
          socket
@@ -48,14 +49,14 @@ defmodule FormValidatorWeb.TestLive do
          |> push_redirect(to: "/ash")}
 
       {:error, form} ->
-        assign(socket, :user, form)
+        assign(socket, :form, form)
     end
   end
 
   def handle_event("add_form", %{"path" => path}, socket) do
     IO.inspect(path, label: "path in add_form event")
-    form = AshPhoenix.Form.add_form(socket.assigns.user, path)
-    {:noreply, assign(socket, :user, form)}
+    form = AshForm.add_form(socket.assigns.form, path)
+    {:noreply, assign(socket, :form, form)}
   end
 
   # def handle_event("remove_form", %{"path" => path}) do
@@ -65,22 +66,35 @@ defmodule FormValidatorWeb.TestLive do
   # end
 
   def render(assigns) do
-    ~F"""
-    <Label text="Label time!" />
+    AshForm.inputs_for()
 
-    <Surface.Components.Form
-      for={:user}
-      change="validate"
-      submit="save"
-      id="form_user_tweets"
-      opts={autocomplete: "off"}
-    >
-      <Field name="email">
-        <TextInput value={@user.data.email} />
-      </Field>
-      <Field name="username">
-        <TextInput value={@user.data.username} />
-      </Field>
+    ~F"""
+    <Form.Label text="Label time!" />
+
+    <Surface.Components.Form for={:form} change="validate" submit="save" opts={autocomplete: "off"}>
+      <Form.Field name={:email}>
+        <Form.Label />
+        <Form.TextInput opts={phx_debounce: 300} />
+      </Form.Field>
+      <Form.Field name={:username}>
+        <Form.Label />
+        <Form.Input opts={phx_debounce: 300} />
+      </Form.Field>
+      <Form.Field name="username">
+        <Form.Label />
+        <Form.TextInput value={@form.data.username} />
+      </Form.Field>
+      <.tweetlist entries={inputs_for(:form, :tweets)}>
+        <:table_header>
+          <.tr class="bg-gray-50">
+            <.th>Public?</.th>
+            <.th>Tweet</.th>
+            <.th>Inserted</.th>
+            <.th>Update</.th>
+            <.th>Action</.th>
+          </.tr>
+        </:table_header>
+      </.tweetlist>
     </Surface.Components.Form>
     """
   end
