@@ -44,7 +44,7 @@ defmodule FormValidatorWeb.TestLive do
         {:noreply,
          socket
          |> put_flash(:info, "User created.")
-         |> push_redirect(to: "/ash")}
+         |> push_redirect(to: "/test")}
 
       {:error, form} ->
         assign(socket, :form, form)
@@ -84,6 +84,11 @@ defmodule FormValidatorWeb.TestLive do
           <Tweet tweet_form={entry} />
         {/for}
       </TweetList>
+      {submit("Save",
+        phx_disable_with: "Saving...",
+        class:
+          "w-1/6 py-2 border-none shadow rounded font-semibold text-sm text-gray-50 hover:bg-primary-600 bg-primary-500"
+      )}
     </Form>
     """
   end
