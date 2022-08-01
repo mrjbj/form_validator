@@ -1,14 +1,19 @@
 defmodule FormValidatorWeb.TweetListComponent do
-  use Phoenix.Component
+  use Surface.Component
 
-  import PetalComponents
   import Phoenix.HTML.Form
-  import FormValidatorWeb.TweetComponent
+  alias FormValidatorWeb.TweetComponent, as: Tweet
 
-  # editable list component
-  # receives list of entries, iterates through each one and
-  # renders the markup specified in the inner block provided
-  # by caller.
+  @doc """
+    editable list component
+    receives list of entries, iterates through each one and
+    renders the markup specified in the inner block provided
+    by caller.
+  """
+
+  slot default, required: false
+  slot header, required: true
+  # prop entries, :any, required: true
 
   @table "min-w-full divide-y divide-gray-300"
   @table_head "min-w-full divide-y divide-gray-300"
@@ -32,16 +37,20 @@ defmodule FormValidatorWeb.TweetListComponent do
     end
   end
 
-  def tweetlist(assigns) do
-    ~H"""
+  def render(assigns) do
+    ~F"""
     <table>
-      <%= render_slot(@table_header) %>
-      <tbody>
-        <%= for entry <- @entries do %>
-          <.tweet tweet_form={entry} />
-        <% end %>
-      </tbody>
+      <#slot name="header" />
+      <#slot>
+      </#slot>
     </table>
     """
   end
 end
+
+# <tbody>
+#   {#for entry <- inputs_for(@entries, :tweets)}
+#     <p>I am an entry</p>
+#     <Tweet tweet_form={entry} />
+#   {/for}
+# </tbody>

@@ -2,17 +2,15 @@ defmodule FormValidatorWeb.TestLive do
   use FormValidatorWeb, :surface_view
 
   import Ash.Query
-
-  import FormValidatorWeb.TweetComponent
-  import FormValidatorWeb.TweetListComponent
-  import FormValidatorWeb.SlotTestComponent
-
   alias Ash.Query
-  alias AshPhoenix.Form, as: AshForm
   alias FormValidator.{User, Address, Api}
 
-  import Surface.Components.Form
-  alias Surface.Components.Form
+  alias AshPhoenix.Form, as: AshForm
+  alias Surface.Components.Form, as: Form
+
+  alias FormValidatorWeb.SlotTestComponent, as: Button
+  alias FormValidatorWeb.TweetListComponent, as: TweetList
+  alias FormValidatorWeb.TweetComponent, as: Tweet
 
   # def mount(%{"post_id" => post_id}, _session, socket) do
   def mount(_params, _session, socket) do
@@ -66,36 +64,32 @@ defmodule FormValidatorWeb.TestLive do
   # end
 
   def render(assigns) do
-    AshForm.inputs_for()
-
     ~F"""
     <Form.Label text="Label time!" />
-
-    <Surface.Components.Form for={:form} change="validate" submit="save" opts={autocomplete: "off"}>
-      <Form.Field name={:email}>
-        <Form.Label />
-        <Form.TextInput opts={phx_debounce: 300} />
-      </Form.Field>
-      <Form.Field name={:username}>
-        <Form.Label />
-        <Form.Input opts={phx_debounce: 300} />
-      </Form.Field>
-      <Form.Field name="username">
-        <Form.Label />
-        <Form.TextInput value={@form.data.username} />
-      </Form.Field>
-      <.tweetlist entries={inputs_for(:form, :tweets)}>
-        <:table_header>
-          <.tr class="bg-gray-50">
-            <.th>Public?</.th>
-            <.th>Tweet</.th>
-            <.th>Inserted</.th>
-            <.th>Update</.th>
-            <.th>Action</.th>
-          </.tr>
-        </:table_header>
-      </.tweetlist>
-    </Surface.Components.Form>
+    <Button>
+      New Button Markup
+    </Button>
+    <Form :let={form: form} for={@form} change="validate" submit="save" opts={autocomplete: "off"}>
+      <TweetList>
+        <:header>
+          <tr id="table_header">
+            <td>Public</td>
+            <td>Body</td>
+            <td>Inserted</td>
+            <td>Updated</td>
+            <td>Actions</td>
+          </tr>
+        </:header>
+        {#for entry <- inputs_for(form, :tweets)}
+          <Tweet tweet_form={entry} />
+        {/for}
+      </TweetList>
+    </Form>
     """
   end
 end
+
+# <Form.Label text="Label time!" />
+# <Button>
+#   New Button Markup
+# </Button>

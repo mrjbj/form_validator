@@ -84,17 +84,6 @@ defmodule FormValidatorWeb.AshUserLive do
           </div>
         </div>
         <!-- child div for table -->
-        <.tweetlist let={entry} entries={inputs_for(f, :tweets)}>
-          <:table_header>
-            <.tr class="bg-gray-50">
-              <.th>Public?</.th>
-              <.th>Tweet</.th>
-              <.th>Inserted</.th>
-              <.th>Update</.th>
-              <.th>Action</.th>
-            </.tr>
-          </:table_header>
-        </.tweetlist>
         <div class="mt-4 px-8 sm:mt-0 sm:ml-16 sm:flex-none flex justify-end">
           <%= submit("Save",
             phx_disable_with: "Saving...",
@@ -107,3 +96,15 @@ defmodule FormValidatorWeb.AshUserLive do
     """
   end
 end
+
+# <.tweetlist let={entry} entries={inputs_for(f, :tweets)}>
+#   <:table_header>
+#     <.tr class="bg-gray-50">
+#       <.th>Public?</.th>
+#       <.th>Tweet</.th>
+#       <.th>Inserted</.th>
+#       <.th>Update</.th>
+#       <.th>Action</.th>
+#     </.tr>
+#   </:table_header>
+# </.tweetlist>
